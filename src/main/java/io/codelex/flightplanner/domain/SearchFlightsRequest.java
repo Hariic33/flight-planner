@@ -1,4 +1,4 @@
-package io.codelex.flightplanner.request;
+package io.codelex.flightplanner.domain;
 
 public class SearchFlightsRequest {
     private String from;
