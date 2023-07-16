@@ -1,7 +1,5 @@
 package io.codelex.flightplanner.domain;
 
-import java.util.Objects;
-
 public class FlightPlanner {
     private Airport from;
     private Airport to;
@@ -58,20 +56,4 @@ public class FlightPlanner {
         this.arrivalTime = arrivalTime;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FlightPlanner flightPlanner = (FlightPlanner) o;
-        return Objects.equals(from, flightPlanner.from)
-                && Objects.equals(to, flightPlanner.to)
-                && Objects.equals(carrier, flightPlanner.carrier)
-                && Objects.equals(departureTime, flightPlanner.departureTime)
-                && Objects.equals(arrivalTime, flightPlanner.arrivalTime);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(to, carrier, departureTime, arrivalTime);
-    }
 }
