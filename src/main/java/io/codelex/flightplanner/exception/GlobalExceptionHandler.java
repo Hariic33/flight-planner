@@ -1,6 +1,5 @@
 package io.codelex.flightplanner.exception;
 
-import io.codelex.flightplanner.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,7 +18,7 @@ public class GlobalExceptionHandler {
             FlightNotFoundException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorResponse> handleBadRequestExceptions(Exception ex) {
+    public ResponseEntity<String> handleBadRequestExceptions(Exception ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         if (ex instanceof FlightAlreadyExistsException) {
             status = HttpStatus.CONFLICT;
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
             status = HttpStatus.NOT_FOUND;
         }
 
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
-        return ResponseEntity.status(status).body(errorResponse);
+        String errorMessage = ex.getMessage();
+        return ResponseEntity.status(status).body(errorMessage);
     }
 }

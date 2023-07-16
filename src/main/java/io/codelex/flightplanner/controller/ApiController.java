@@ -1,7 +1,7 @@
 package io.codelex.flightplanner.controller;
 
 import io.codelex.flightplanner.domain.Airport;
-import io.codelex.flightplanner.request.SearchFlightsRequest;
+import io.codelex.flightplanner.domain.SearchFlightsRequest;
 import io.codelex.flightplanner.dto.FlightPlannerDTO;
 import io.codelex.flightplanner.exception.FlightNotFoundException;
 import io.codelex.flightplanner.exception.InvalidSearchException;
