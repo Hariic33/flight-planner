@@ -87,11 +87,11 @@ class FlightPlannerApplicationTests {
                         new Airport("United Arab Emirates", "Dubai", "DXB"), "Turkish Airlines", LocalDateTime.now(), LocalDateTime.now().plusHours(5))
         );
 
-        when(flightPlannerRepositoryMock.searchFlights(anyString(), anyString(), anyString())).thenReturn(expectedSearchResults);
+        when(flightPlannerServiceMock.searchFlights(anyString(), anyString(), anyString())).thenReturn(expectedSearchResults);
 
         List<FlightPlannerDTO> actualSearchResults = flightPlannerServiceMock.searchFlights(searchCountryText, searchCityText, searchAirportText);
 
-        verify(flightPlannerRepositoryMock).searchFlights(eq(searchCountryText), eq(searchCityText), eq(searchAirportText));
+        verify(flightPlannerServiceMock).searchFlights(eq(searchCountryText), eq(searchCityText), eq(searchAirportText));
         assertEquals(expectedSearchResults, actualSearchResults);
         assertEquals(expectedSearchResults.size(), actualSearchResults.size());
     }

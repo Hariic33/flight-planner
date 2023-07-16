@@ -9,11 +9,13 @@ import io.codelex.flightplanner.repository.FlightPlannerRepository;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class FlightPlannerService {
@@ -29,11 +31,15 @@ public class FlightPlannerService {
     }
 
     public void addFlights(@Valid FlightPlannerDTO flight) {
-        if (flightPlannerRepository.flightAlreadyExists(flight)) {
+        validateAirports(flight.getFrom(), flight.getTo());
+
+        boolean flightAlreadyExists = flightPlannerRepository.getFlights().stream()
+                .anyMatch(flight::equals);
+
+        if (flightAlreadyExists) {
             throw new FlightAlreadyExistsException();
         }
 
-        validateAirports(flight.getFrom(), flight.getTo());
         flightPlannerRepository.addFlights(flight);
     }
 
@@ -82,7 +88,18 @@ public class FlightPlannerService {
     }
 
     public List<Airport> searchAirports(String search) {
-        return flightPlannerRepository.getFilteredMatchList(search.toLowerCase().trim());
+        String lowercaseSearch = search.toLowerCase().trim();
+        return flightPlannerRepository.getFlights().stream()
+                .map(FlightPlannerDTO::getFrom)
+                .filter(from -> matchesAirport(from, lowercaseSearch))
+                .map(from -> new Airport(from.getCountry(), from.getCity(), from.getAirport()))
+                .toList();
+    }
+
+    private boolean matchesAirport(Airport airport, String search) {
+        return airport.getAirport().toLowerCase().contains(search)
+                || airport.getCity().toLowerCase().contains(search)
+                || airport.getCountry().toLowerCase().contains(search);
     }
 
     public List<FlightPlannerDTO> searchFlights(String from, String to, String departureDate) {
@@ -94,13 +111,20 @@ public class FlightPlannerService {
             throw new SameAirportsException();
         }
 
-        List<FlightPlannerDTO> flights = flightPlannerRepository.searchFlights(from, to, departureDate);
+        List<FlightPlannerDTO> flights = flightPlannerRepository.getFlights();
+        return filterFlightsBySearchCriteria(flights, from, to, departureDate);
+    }
 
-        if (flights.isEmpty()) {
-            return List.of();
-        }
+    private List<FlightPlannerDTO> filterFlightsBySearchCriteria(List<FlightPlannerDTO> flights, String from, String to, String departureDate) {
+        return flights.stream()
+                .filter(flight -> matchesSearchCriteria(flight, from, to, departureDate))
+                .collect(Collectors.toList());
+    }
 
-        return flights;
+    private boolean matchesSearchCriteria(FlightPlannerDTO flight, String from, String to, String departureDate) {
+        return flight.getFrom().getAirport().equalsIgnoreCase(from.toLowerCase())
+                && flight.getTo().getAirport().equalsIgnoreCase(to.toLowerCase())
+                && flight.getDepartureTime().toLocalDate().isEqual(LocalDate.parse(departureDate));
     }
 
     public FlightPlannerDTO mapToDTO(FlightPlanner flight) {

@@ -14,27 +14,19 @@ public class GlobalExceptionHandler {
             IllegalArgumentException.class,
             SameAirportsException.class,
             InvalidFlightDateException.class,
-            InvalidSearchException.class
+            InvalidSearchException.class,
+            FlightAlreadyExistsException.class,
+            FlightNotFoundException.class
     })
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleBadRequestExceptions(Exception ex) {
-        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST);
-    }
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        if (ex instanceof FlightAlreadyExistsException) {
+            status = HttpStatus.CONFLICT;
+        } else if (ex instanceof FlightNotFoundException) {
+            status = HttpStatus.NOT_FOUND;
+        }
 
-    @ExceptionHandler(FlightAlreadyExistsException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<ErrorResponse> handleFlightAlreadyExistsException(FlightAlreadyExistsException ex) {
-        return buildErrorResponse(ex, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(FlightNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ErrorResponse> handleFlightNotFoundException(FlightNotFoundException ex) {
-        return buildErrorResponse(ex, HttpStatus.NOT_FOUND);
-    }
-
-    private ResponseEntity<ErrorResponse> buildErrorResponse(Exception ex, HttpStatus status) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(status).body(errorResponse);
     }
