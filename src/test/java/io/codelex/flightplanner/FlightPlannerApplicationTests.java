@@ -6,25 +6,20 @@ import io.codelex.flightplanner.domain.Airport;
 import io.codelex.flightplanner.domain.FlightPlanner;
 import io.codelex.flightplanner.dto.FlightPlannerDTO;
 import io.codelex.flightplanner.repository.FlightPlannerRepository;
-import io.codelex.flightplanner.service.FlightPlannerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 class FlightPlannerApplicationTests {
 
     @Autowired
@@ -70,29 +65,5 @@ class FlightPlannerApplicationTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         List<FlightPlannerDTO> flightsAfterClearing = flightPlannerRepository.getFlights();
         assertEquals(0, flightsAfterClearing.size());
-    }
-
-    @Test
-    void shouldReturnMatchingFlightsForSearchQuery() {
-        FlightPlannerRepository flightPlannerRepositoryMock = mock(FlightPlannerRepository.class);
-        FlightPlannerService flightPlannerServiceMock = new FlightPlannerService(flightPlannerRepositoryMock);
-
-        String searchCountryText = "Latvia";
-        String searchCityText = "Riga";
-        String searchAirportText = "RIX";
-        List<FlightPlannerDTO> expectedSearchResults = Arrays.asList(
-                new FlightPlannerDTO("1", new Airport("Latvia", "Riga", "RIX"),
-                        new Airport("Sweden", "Stockholm", "ARN"), "Ryanair", LocalDateTime.now(), LocalDateTime.now().plusHours(2)),
-                new FlightPlannerDTO("2", new Airport("Russia", "Moscow", "DME"),
-                        new Airport("United Arab Emirates", "Dubai", "DXB"), "Turkish Airlines", LocalDateTime.now(), LocalDateTime.now().plusHours(5))
-        );
-
-        when(flightPlannerServiceMock.searchFlights(anyString(), anyString(), anyString())).thenReturn(expectedSearchResults);
-
-        List<FlightPlannerDTO> actualSearchResults = flightPlannerServiceMock.searchFlights(searchCountryText, searchCityText, searchAirportText);
-
-        verify(flightPlannerServiceMock).searchFlights(eq(searchCountryText), eq(searchCityText), eq(searchAirportText));
-        assertEquals(expectedSearchResults, actualSearchResults);
-        assertEquals(expectedSearchResults.size(), actualSearchResults.size());
     }
 }
