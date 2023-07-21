@@ -3,9 +3,9 @@ package io.codelex.flightplanner;
 import io.codelex.flightplanner.controller.AdminApiController;
 import io.codelex.flightplanner.controller.TestingApiController;
 import io.codelex.flightplanner.domain.Airport;
-import io.codelex.flightplanner.domain.FlightPlanner;
-import io.codelex.flightplanner.dto.FlightPlannerDTO;
-import io.codelex.flightplanner.repository.FlightPlannerRepository;
+import io.codelex.flightplanner.domain.Flight;
+import io.codelex.flightplanner.dto.FlightDTO;
+import io.codelex.flightplanner.repository.FlightRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-class FlightPlannerApplicationTests {
+class FlightApplicationTests {
 
     @Autowired
     AdminApiController adminApiController;
@@ -29,7 +29,7 @@ class FlightPlannerApplicationTests {
     TestingApiController testingApiController;
 
     @Autowired
-    FlightPlannerRepository flightPlannerRepository;
+    FlightRepository flightRepository;
 
     @Test
     void canAddFlight() {
@@ -39,9 +39,9 @@ class FlightPlannerApplicationTests {
         LocalDateTime departureTime = LocalDateTime.of(2023, 7, 13, 10, 0);
         LocalDateTime arrivalTime = LocalDateTime.of(2023, 7, 13, 11, 30);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        FlightPlanner request = new FlightPlanner(from, to, carrier, formatter.format(departureTime), formatter.format(arrivalTime));
+        Flight request = new Flight(from, to, carrier, formatter.format(departureTime), formatter.format(arrivalTime));
 
-        FlightPlannerDTO savedFlight = adminApiController.addFlight(request).getBody();
+        FlightDTO savedFlight = adminApiController.addFlight(request).getBody();
 
         assertNotNull(savedFlight.getId());
         assertEquals(savedFlight.getFrom(), from);
@@ -53,17 +53,17 @@ class FlightPlannerApplicationTests {
 
     @Test
     void canClearFlight() {
-        FlightPlannerDTO flight1 = new FlightPlannerDTO("1", new Airport("Latvia", "Riga", "RIX"),
+        FlightDTO flight1 = new FlightDTO(new Airport("Latvia", "Riga", "RIX"),
                 new Airport("Sweden", "Stockholm", "ARN"), "Ryanair", LocalDateTime.now(), LocalDateTime.now().plusHours(2));
-        FlightPlannerDTO flight2 = new FlightPlannerDTO("2", new Airport("Russia", "Moscow", "DME"),
+        FlightDTO flight2 = new FlightDTO(new Airport("Russia", "Moscow", "DME"),
                 new Airport("United Arab Emirates", "Dubai", "DXB"), "Turkish Airlines", LocalDateTime.now(), LocalDateTime.now().plusHours(5));
-        flightPlannerRepository.addFlights(flight1);
-        flightPlannerRepository.addFlights(flight2);
+        flightRepository.addFlights(flight1);
+        flightRepository.addFlights(flight2);
 
         ResponseEntity<Void> response = testingApiController.clearFlights();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<FlightPlannerDTO> flightsAfterClearing = flightPlannerRepository.getFlights();
+        List<FlightDTO> flightsAfterClearing = flightRepository.getFlights();
         assertEquals(0, flightsAfterClearing.size());
     }
 }

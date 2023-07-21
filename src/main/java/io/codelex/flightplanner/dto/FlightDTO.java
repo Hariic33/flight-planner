@@ -5,8 +5,9 @@ import io.codelex.flightplanner.domain.Airport;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
-public class FlightPlannerDTO {
+public class FlightDTO {
     private String id;
     private Airport from;
     private Airport to;
@@ -16,12 +17,12 @@ public class FlightPlannerDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime arrivalTime;
 
-    public FlightPlannerDTO(String id, Airport from, Airport to, String carrier, LocalDateTime departureTIme, LocalDateTime arrivalTime) {
-        this.id = id;
+    public FlightDTO(Airport from, Airport to, String carrier, LocalDateTime departureTime, LocalDateTime arrivalTime) {
+        this.id = UUID.randomUUID().toString();
         this.from = from;
         this.to = to;
         this.carrier = carrier;
-        this.departureTime = departureTIme;
+        this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
     }
 
@@ -74,10 +75,10 @@ public class FlightPlannerDTO {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FlightPlannerDTO flightDTO = (FlightPlannerDTO) o;
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        FlightDTO flightDTO = (FlightDTO) obj;
         return Objects.equals(from.getAirport(), flightDTO.from.getAirport()) &&
                 Objects.equals(to.getAirport(), flightDTO.to.getAirport()) &&
                 Objects.equals(carrier, flightDTO.carrier) &&

@@ -2,10 +2,10 @@ package io.codelex.flightplanner.service;
 
 import io.codelex.flightplanner.domain.Airport;
 import io.codelex.flightplanner.domain.AirportUtils;
-import io.codelex.flightplanner.domain.FlightPlanner;
-import io.codelex.flightplanner.dto.FlightPlannerDTO;
+import io.codelex.flightplanner.domain.Flight;
+import io.codelex.flightplanner.dto.FlightDTO;
 import io.codelex.flightplanner.exception.*;
-import io.codelex.flightplanner.repository.FlightPlannerRepository;
+import io.codelex.flightplanner.repository.FlightRepository;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
@@ -18,32 +18,27 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class FlightPlannerService {
-    private final FlightPlannerRepository flightPlannerRepository;
+public class FlightService {
+    private final FlightRepository flightRepository;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public FlightPlannerService(FlightPlannerRepository flightPlannerRepository) {
-        this.flightPlannerRepository = flightPlannerRepository;
+    public FlightService(FlightRepository flightRepository) {
+        this.flightRepository = flightRepository;
     }
 
     public void clearFlights() {
-        flightPlannerRepository.clearFlightList();
+        flightRepository.clearFlightList();
     }
 
-    public void addFlights(@Valid FlightPlannerDTO flight) {
+    public void addFlights(@Valid FlightDTO flight) {
         validateAirports(flight.getFrom(), flight.getTo());
-
-        boolean flightAlreadyExists = flightPlannerRepository.getFlights().stream()
-                .anyMatch(flight::equals);
-
-        if (flightAlreadyExists) {
+        if (flightRepository.getFlights().contains(flight)) {
             throw new FlightAlreadyExistsException();
         }
-
-        flightPlannerRepository.addFlights(flight);
+        flightRepository.addFlights(flight);
     }
 
-    public boolean validateFlightRequest(FlightPlanner flight) {
+    public boolean validateFlightRequest(Flight flight) {
         if (flight == null) {
             return false;
         }
@@ -70,16 +65,16 @@ public class FlightPlannerService {
     }
 
     public void deleteFlight(String id) {
-        FlightPlannerDTO flight = getFlightById(id);
+        FlightDTO flight = getFlightById(id);
         if (flight == null) {
             throw new FlightNotFoundException();
         }
 
-        flightPlannerRepository.deleteFlight(flight);
+        flightRepository.deleteFlight(flight);
     }
 
-    public FlightPlannerDTO getFlightById(String id) {
-        FlightPlannerDTO flight = flightPlannerRepository.getFlightById(id);
+    public FlightDTO getFlightById(String id) {
+        FlightDTO flight = flightRepository.getFlightById(id);
         if (flight == null) {
             throw new FlightNotFoundException();
         }
@@ -89,8 +84,8 @@ public class FlightPlannerService {
 
     public List<Airport> searchAirports(String search) {
         String lowercaseSearch = search.toLowerCase().trim();
-        return flightPlannerRepository.getFlights().stream()
-                .map(FlightPlannerDTO::getFrom)
+        return flightRepository.getFlights().stream()
+                .map(FlightDTO::getFrom)
                 .filter(from -> matchesAirport(from, lowercaseSearch))
                 .map(from -> new Airport(from.getCountry(), from.getCity(), from.getAirport()))
                 .toList();
@@ -102,7 +97,7 @@ public class FlightPlannerService {
                 || airport.getCountry().toLowerCase().contains(search);
     }
 
-    public List<FlightPlannerDTO> searchFlights(String from, String to, String departureDate) {
+    public List<FlightDTO> searchFlights(String from, String to, String departureDate) {
         if (from == null || to == null || departureDate == null) {
             throw new InvalidSearchException();
         }
@@ -111,45 +106,30 @@ public class FlightPlannerService {
             throw new SameAirportsException();
         }
 
-        List<FlightPlannerDTO> flights = flightPlannerRepository.getFlights();
+        List<FlightDTO> flights = flightRepository.getFlights();
         return filterFlightsBySearchCriteria(flights, from, to, departureDate);
     }
 
-    private List<FlightPlannerDTO> filterFlightsBySearchCriteria(List<FlightPlannerDTO> flights, String from, String to, String departureDate) {
+    private List<FlightDTO> filterFlightsBySearchCriteria(List<FlightDTO> flights, String from, String to, String departureDate) {
         return flights.stream()
                 .filter(flight -> matchesSearchCriteria(flight, from, to, departureDate))
                 .collect(Collectors.toList());
     }
 
-    private boolean matchesSearchCriteria(FlightPlannerDTO flight, String from, String to, String departureDate) {
+    private boolean matchesSearchCriteria(FlightDTO flight, String from, String to, String departureDate) {
         return flight.getFrom().getAirport().equalsIgnoreCase(from.toLowerCase())
                 && flight.getTo().getAirport().equalsIgnoreCase(to.toLowerCase())
                 && flight.getDepartureTime().toLocalDate().isEqual(LocalDate.parse(departureDate));
     }
 
-    public FlightPlannerDTO mapToDTO(FlightPlanner flight) {
-        LocalDateTime departure = parseDateTime(flight.getDepartureTime());
-        LocalDateTime arrival = parseDateTime(flight.getArrivalTime());
+    public FlightDTO mapToDTO(Flight flight) {
+        LocalDateTime departure = LocalDateTime.parse(flight.getDepartureTime(), FORMATTER);
+        LocalDateTime arrival = LocalDateTime.parse(flight.getArrivalTime(), FORMATTER);
 
         if (departure.isAfter(arrival) || departure.isEqual(arrival)) {
             throw new InvalidFlightDateException();
         }
 
-        return new FlightPlannerDTO(
-                UUID.randomUUID().toString(),
-                flight.getFrom(),
-                flight.getTo(),
-                flight.getCarrier(),
-                departure,
-                arrival
-        );
-    }
-
-    private LocalDateTime parseDateTime(String dateTimeString) {
-        try {
-            return LocalDateTime.parse(dateTimeString, FORMATTER);
-        } catch (DateTimeParseException e) {
-            throw new InvalidFlightDateException();
-        }
+        return new FlightDTO(flight.getFrom(), flight.getTo(), flight.getCarrier(), departure, arrival);
     }
 }
