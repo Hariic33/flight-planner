@@ -1,16 +1,16 @@
 package io.codelex.flightplanner.repository;
 
-import io.codelex.flightplanner.dto.FlightPlannerDTO;
+import io.codelex.flightplanner.dto.FlightDTO;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Repository
-public class FlightPlannerRepository {
-    private final List<FlightPlannerDTO> flightList;
+public class FlightRepository {
+    private final List<FlightDTO> flightList;
 
-    public FlightPlannerRepository() {
+    public FlightRepository() {
         this.flightList = new CopyOnWriteArrayList<>();
     }
 
@@ -18,7 +18,7 @@ public class FlightPlannerRepository {
         flightList.clear();
     }
 
-    public void addFlights(FlightPlannerDTO flight) {
+    public void addFlights(FlightDTO flight) {
         synchronized (flightList) {
             if (flightList.contains(flight)) {
                 return;
@@ -27,13 +27,13 @@ public class FlightPlannerRepository {
         }
     }
 
-    public void deleteFlight(FlightPlannerDTO flight) {
+    public void deleteFlight(FlightDTO flight) {
         synchronized (flightList) {
             flightList.remove(flight);
         }
     }
 
-    public FlightPlannerDTO getFlightById(String id) {
+    public FlightDTO getFlightById(String id) {
         synchronized (flightList) {
             return flightList.stream()
                     .filter(f -> f.getId().equals(id))
@@ -42,7 +42,7 @@ public class FlightPlannerRepository {
         }
     }
 
-    public List<FlightPlannerDTO> getFlights() {
+    public List<FlightDTO> getFlights() {
         return flightList;
     }
 }

@@ -1,28 +1,30 @@
 package io.codelex.flightplanner;
 
 import io.codelex.flightplanner.domain.Airport;
-import io.codelex.flightplanner.dto.FlightPlannerDTO;
-import io.codelex.flightplanner.repository.FlightPlannerRepository;
-import io.codelex.flightplanner.service.FlightPlannerService;
+import io.codelex.flightplanner.dto.FlightDTO;
+import io.codelex.flightplanner.repository.FlightRepository;
+import io.codelex.flightplanner.service.FlightService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class FlightPlannerServiceTest {
+class FlightServiceTest {
     @Mock
-    private FlightPlannerRepository flightPlannerRepository;
+    private FlightRepository flightRepository;
 
     @InjectMocks
-    private FlightPlannerService flightPlannerService;
+    private FlightService flightService;
 
     @BeforeEach
     void setUp() {
@@ -31,21 +33,21 @@ class FlightPlannerServiceTest {
 
     @Test
     void searchFlights_ShouldReturnMatchingFlights() {
-
         String from = "RIX";
         String to = "ARN";
-        String departureDate = "2023-07-18";
-        FlightPlannerDTO flight1 = new FlightPlannerDTO("1", new Airport("Latvia", "Riga", "RIX"),
+        String departureDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        FlightDTO flight1 = new FlightDTO(new Airport("Latvia", "Riga", "RIX"),
                 new Airport("Sweden", "Stockholm", "ARN"),
                 "Ryanair", LocalDateTime.now(), LocalDateTime.now().plusHours(2));
-        FlightPlannerDTO flight2 = new FlightPlannerDTO("2", new Airport("Russia", "Moscow", "DME"),
+        FlightDTO flight2 = new FlightDTO(new Airport("Russia", "Moscow", "DME"),
                 new Airport("United Arab Emirates", "Dubai", "DXB"), "Turkish Airlines",
                 LocalDateTime.now(), LocalDateTime.now().plusHours(5));
 
-        List<FlightPlannerDTO> flights = Arrays.asList(flight1, flight2);
-        when(flightPlannerRepository.getFlights()).thenReturn(flights);
+        List<FlightDTO> flights = Arrays.asList(flight1, flight2);
+        when(flightRepository.getFlights()).thenReturn(flights);
 
-        List<FlightPlannerDTO> result = flightPlannerService.searchFlights(from, to, departureDate);
+        List<FlightDTO> result = flightService.searchFlights(from, to, departureDate);
 
         assertEquals(1, result.size());
     }

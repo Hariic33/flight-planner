@@ -1,14 +1,13 @@
 package io.codelex.flightplanner.domain;
 
-public class FlightPlanner {
+public class Flight {
     private Airport from;
     private Airport to;
     private String carrier;
     private String departureTime;
     private String arrivalTime;
 
-
-    public FlightPlanner(Airport from, Airport to, String carrier, String departureTime, String arrivalTime) {
+    public Flight(Airport from, Airport to, String carrier, String departureTime, String arrivalTime) {
         this.from = from;
         this.to = to;
         this.carrier = carrier;
