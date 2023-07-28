@@ -1,7 +1,6 @@
 package io.codelex.flightplanner.controller;
 
 import io.codelex.flightplanner.service.FlightService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,8 +15,7 @@ public class TestingApiController {
     }
 
     @PostMapping("/clear")
-    public ResponseEntity<Void> clearFlights() {
+    public void clearFlights() {
         flightService.clearFlights();
-        return ResponseEntity.ok().build();
     }
 }

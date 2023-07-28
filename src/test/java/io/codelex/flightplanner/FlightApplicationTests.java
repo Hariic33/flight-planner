@@ -9,15 +9,12 @@ import io.codelex.flightplanner.repository.FlightRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class FlightApplicationTests {
@@ -41,8 +38,12 @@ class FlightApplicationTests {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         Flight request = new Flight(from, to, carrier, formatter.format(departureTime), formatter.format(arrivalTime));
 
-        FlightDTO savedFlight = adminApiController.addFlight(request).getBody();
+        adminApiController.addFlight(request);
 
+        List<FlightDTO> flightsAfterAdding = flightRepository.getFlights();
+        assertEquals(1, flightsAfterAdding.size());
+
+        FlightDTO savedFlight = flightsAfterAdding.get(0);
         assertNotNull(savedFlight.getId());
         assertEquals(savedFlight.getFrom(), from);
         assertEquals(savedFlight.getTo(), to);
@@ -60,9 +61,8 @@ class FlightApplicationTests {
         flightRepository.addFlights(flight1);
         flightRepository.addFlights(flight2);
 
-        ResponseEntity<Void> response = testingApiController.clearFlights();
+        assertDoesNotThrow(() -> testingApiController.clearFlights());
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
         List<FlightDTO> flightsAfterClearing = flightRepository.getFlights();
         assertEquals(0, flightsAfterClearing.size());
     }

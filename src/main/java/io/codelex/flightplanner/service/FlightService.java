@@ -1,7 +1,6 @@
 package io.codelex.flightplanner.service;
 
 import io.codelex.flightplanner.domain.Airport;
-import io.codelex.flightplanner.domain.AirportUtils;
 import io.codelex.flightplanner.domain.Flight;
 import io.codelex.flightplanner.dto.FlightDTO;
 import io.codelex.flightplanner.exception.*;
@@ -12,9 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,21 +44,31 @@ public class FlightService {
         Airport to = flight.getTo();
 
         return from != null && to != null &&
-                !AirportUtils.isEmpty(from) && !AirportUtils.isEmpty(to) &&
-                isNotBlank(flight.getCarrier()) &&
-                isNotBlank(from.getCountry()) && isNotBlank(from.getCity()) && isNotBlank(from.getAirport()) &&
-                isNotBlank(to.getCountry()) && isNotBlank(to.getCity()) && isNotBlank(to.getAirport()) &&
-                isNotBlank(flight.getDepartureTime()) && isNotBlank(flight.getArrivalTime());
+                isNotBlank(flight.getCarrier(), from.getCountry(), from.getCity(), from.getAirport(), to.getCountry(), to.getCity(), to.getAirport(), flight.getDepartureTime(), flight.getArrivalTime());
     }
 
-    private boolean isNotBlank(String value) {
-        return value != null && !value.isBlank();
+    private boolean isNotBlank(String... values) {
+        for (String value : values) {
+            if (value == null || value.isBlank()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void validateAirports(Airport airportFrom, Airport airportTo) {
-        if (AirportUtils.equalsIgnoreCase(airportFrom, airportTo) || airportFrom.getAirport().trim().equalsIgnoreCase(airportTo.getAirport().trim())) {
-            throw new SameAirportsException();
+        if (equalsIgnoreCase(airportFrom, airportTo) || airportFrom.getAirport().trim().equalsIgnoreCase(airportTo.getAirport().trim())) {
+            throw new FlightException("Departure and arrival airports cannot be the same");
         }
+    }
+
+    private boolean equalsIgnoreCase(Airport airport1, Airport airport2) {
+        if (airport1 == null || airport2 == null) {
+            return false;
+        }
+        return airport1.getCountry().equalsIgnoreCase(airport2.getCountry())
+                && airport1.getCity().equalsIgnoreCase(airport2.getCity())
+                && airport1.getAirport().equalsIgnoreCase(airport2.getAirport());
     }
 
     public void deleteFlight(String id) {
@@ -98,12 +105,8 @@ public class FlightService {
     }
 
     public List<FlightDTO> searchFlights(String from, String to, String departureDate) {
-        if (from == null || to == null || departureDate == null) {
-            throw new InvalidSearchException();
-        }
-
-        if (from.equalsIgnoreCase(to)) {
-            throw new SameAirportsException();
+        if (from == null || to == null || departureDate == null || (from.equalsIgnoreCase(to))) {
+            throw new FlightException("Invalid search criteria");
         }
 
         List<FlightDTO> flights = flightRepository.getFlights();
@@ -127,7 +130,7 @@ public class FlightService {
         LocalDateTime arrival = LocalDateTime.parse(flight.getArrivalTime(), FORMATTER);
 
         if (departure.isAfter(arrival) || departure.isEqual(arrival)) {
-            throw new InvalidFlightDateException();
+            throw new FlightException("Invalid flight date");
         }
 
         return new FlightDTO(flight.getFrom(), flight.getTo(), flight.getCarrier(), departure, arrival);

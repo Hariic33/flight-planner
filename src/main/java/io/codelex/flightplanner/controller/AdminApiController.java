@@ -6,9 +6,9 @@ import io.codelex.flightplanner.exception.FlightNotFoundException;
 import io.codelex.flightplanner.service.FlightService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @Validated
@@ -21,33 +21,31 @@ public class AdminApiController {
     }
 
     @PutMapping("/flights")
-    public ResponseEntity<FlightDTO> addFlight(@Valid @RequestBody Flight flight) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public FlightDTO addFlight(@Valid @RequestBody Flight flight) {
         if (!flightService.validateFlightRequest(flight)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         FlightDTO flightDTO = flightService.mapToDTO(flight);
         flightService.addFlights(flightDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(flightDTO);
+        return flightDTO;
     }
 
     @DeleteMapping("/flights/{id}")
-    public ResponseEntity<Void> deleteFlight(@PathVariable String id) {
+    public void deleteFlight(@PathVariable String id) {
         try {
             flightService.deleteFlight(id);
-            return ResponseEntity.ok().build();
-        } catch (FlightNotFoundException e) {
-            return ResponseEntity.ok().build();
+        } catch (FlightNotFoundException ignored) {
         }
     }
 
     @GetMapping("/flights/{id}")
-    public ResponseEntity<FlightDTO> fetchFlight(@PathVariable String id) {
+    public FlightDTO fetchFlight(@PathVariable String id) {
         try {
-            FlightDTO flight = flightService.getFlightById(id);
-            return ResponseEntity.ok(flight);
+            return flightService.getFlightById(id);
         } catch (FlightNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 }

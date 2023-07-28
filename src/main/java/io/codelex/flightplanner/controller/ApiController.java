@@ -3,12 +3,13 @@ package io.codelex.flightplanner.controller;
 import io.codelex.flightplanner.domain.Airport;
 import io.codelex.flightplanner.domain.SearchFlightsRequest;
 import io.codelex.flightplanner.dto.FlightDTO;
+import io.codelex.flightplanner.exception.FlightException;
 import io.codelex.flightplanner.exception.FlightNotFoundException;
-import io.codelex.flightplanner.exception.InvalidSearchException;
 import io.codelex.flightplanner.service.FlightService;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -23,33 +24,30 @@ public class ApiController {
     }
 
     @GetMapping("/airports")
-    public ResponseEntity<List<Airport>> searchAirports(@RequestParam String search) {
-        List<Airport> airports = flightService.searchAirports(search);
-        return ResponseEntity.ok(airports);
+    public List<Airport> searchAirports(@RequestParam String search) {
+        return flightService.searchAirports(search);
     }
 
     @PostMapping("/flights/search")
-    public ResponseEntity<Map<String, Object>> searchFlights(@RequestBody(required = false) @Valid SearchFlightsRequest request) {
+    public Map<String, Object> searchFlights(@RequestBody(required = false) @Valid SearchFlightsRequest request) {
         if (request == null || request.getFrom() == null || request.getTo() == null || request.getDepartureDate() == null) {
-            throw new InvalidSearchException();
+            throw new FlightException("Invalid search criteria");
         }
 
         List<FlightDTO> flights = flightService.searchFlights(request.getFrom(), request.getTo(), request.getDepartureDate());
-        Map<String, Object> response = Map.of(
+        return Map.of(
                 "page", 0,
                 "totalItems", flights.size(),
                 "items", flights
         );
-        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/flights/{id}")
-    public ResponseEntity<FlightDTO> getFlightById(@PathVariable String id) {
+    public FlightDTO getFlightById(@PathVariable String id) {
         try {
-            FlightDTO flight = flightService.getFlightById(id);
-            return ResponseEntity.ok(flight);
+            return flightService.getFlightById(id);
         } catch (FlightNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 }
