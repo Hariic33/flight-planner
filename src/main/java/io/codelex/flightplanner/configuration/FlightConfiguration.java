@@ -1,5 +1,6 @@
 package io.codelex.flightplanner.configuration;
 
+import io.codelex.flightplanner.repository.AirportRepository;
 import io.codelex.flightplanner.repository.FlightInMemoryRepository;
 import io.codelex.flightplanner.repository.FlightRepository;
 import io.codelex.flightplanner.service.FlightDatabaseService;
@@ -20,7 +21,7 @@ public class FlightConfiguration {
 
     @Bean
     @ConditionalOnProperty(prefix="flight", name="service.version", havingValue = "database")
-    public FlightService getDatabaseVersion(FlightRepository flightRepository) {
-        return new FlightDatabaseService(flightRepository);
+    public FlightService getDatabaseVersion(FlightRepository flightRepository, AirportRepository airportRepository) {
+        return new FlightDatabaseService(flightRepository, airportRepository);
     }
 }

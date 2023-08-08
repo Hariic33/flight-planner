@@ -14,49 +14,50 @@ public class Airport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotBlank
-    @Column(name = "country")
-    private String country;
+    @Column(name = "airport")
+    private String airport;
 
     @NotBlank
     @Column(name = "city")
     private String city;
 
     @NotBlank
-    @Column(name = "airport")
-    private String airport;
+    @Column(name = "country")
+    private String country;
 
     public Airport() {
     }
 
-    public Airport(String country, String city, String airport) {
-        this.country = country;
-        this.city = city;
+    public Airport(String airport, String city, String country) {
         this.airport = airport;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(@NotBlank String country) {
-        this.country = country;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(@NotBlank String city) {
         this.city = city;
+        this.country = country;
     }
 
     public String getAirport() {
         return airport;
     }
 
-    public void setAirport(@NotBlank String airport) {
+    public void setAirport(String airport) {
         this.airport = airport;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public Long getId() {

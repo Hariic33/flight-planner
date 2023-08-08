@@ -23,18 +23,18 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class FlightApplicationTests {
-
-    @Autowired
     AdminApiController adminApiController;
-
-    @Autowired
     TestingApiController testingApiController;
+    FlightService flightService;
 
     @Autowired
     FlightInMemoryRepository flightInMemoryRepository;
 
     @BeforeEach
     void setUp() {
+        flightService = new FlightInMemoryService(flightInMemoryRepository);
+        adminApiController = new AdminApiController(flightService);
+        testingApiController = new TestingApiController(flightService);
         flightInMemoryRepository.clearFlightList();
     }
 
@@ -47,24 +47,21 @@ class FlightApplicationTests {
         LocalDateTime arrivalTime = LocalDateTime.of(2023, 7, 13, 11, 30);
         Flight request = new Flight(from, to, carrier, departureTime, arrivalTime);
 
-        assertThrows(FlightAlreadyExistsException.class, () -> adminApiController.addFlight(request));
+        Flight addedFlight = adminApiController.addFlight(request);
 
-        List<Flight> flightsAfterAdding = flightInMemoryRepository.getFlights();
-        assertEquals(0, flightsAfterAdding.size());
+        assertTrue(flightInMemoryRepository.getFlights().contains(addedFlight));
+
+        assertThrows(FlightAlreadyExistsException.class, () -> adminApiController.addFlight(request));
     }
 
 
     @Test
     void canClearFlight() {
-        Flight flight1 = new Flight(new Airport("Latvia", "Riga", "RIX"),
+        Flight flight = new Flight(new Airport("Latvia", "Riga", "RIX"),
                 new Airport("Sweden", "Stockholm", "ARN"), "Ryanair",
                 LocalDateTime.now(), LocalDateTime.now().plusHours(2));
-        Flight flight2 = new Flight(new Airport("Russia", "Moscow", "DME"),
-                new Airport("United Arab Emirates", "Dubai", "DXB"), "Turkish Airlines",
-                LocalDateTime.now(), LocalDateTime.now().plusHours(5));
 
-        adminApiController.addFlight(flight1);
-        adminApiController.addFlight(flight2);
+        adminApiController.addFlight(flight);
 
         testingApiController.clearFlights();
 

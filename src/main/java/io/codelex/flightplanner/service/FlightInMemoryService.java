@@ -10,9 +10,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class FlightInMemoryService implements FlightService {
     private final FlightInMemoryRepository flightInMemoryRepository;
+
     public FlightInMemoryService(FlightInMemoryRepository flightInMemoryRepository) {
         this.flightInMemoryRepository = flightInMemoryRepository;
     }
@@ -43,7 +45,12 @@ public class FlightInMemoryService implements FlightService {
             throw new FlightException("Departure and arrival airports cannot be the same");
         }
 
-        FlightDatabaseService.validateFlightRequest(from, to, departureTime, arrivalTime, carrier);
+        if (!departureTime.isBefore(arrivalTime) ||
+                Stream.of(from, to, departureTime, arrivalTime, carrier, from.getCountry(), from.getCity(), from.getAirport(),
+                                to.getCountry(), to.getCity(), to.getAirport())
+                        .anyMatch(value -> value == null || value.toString().trim().isEmpty())) {
+            throw new FlightException("Invalid flight request");
+        }
     }
 
     public List<Airport> searchAirports(String search) {
@@ -53,7 +60,7 @@ public class FlightInMemoryService implements FlightService {
                 .filter(airport -> airport.getAirport().toLowerCase().contains(lowercaseSearch)
                         || airport.getCity().toLowerCase().contains(lowercaseSearch)
                         || airport.getCountry().toLowerCase().contains(lowercaseSearch))
-                .map(airport -> new Airport(airport.getCountry(), airport.getCity(), airport.getAirport()))
+                .map(airport -> new Airport(airport.getAirport(), airport.getCity(), airport.getCountry()))
                 .toList();
     }
 
@@ -78,9 +85,9 @@ public class FlightInMemoryService implements FlightService {
     }
 
     public Map<String, Object> searchFlights(FlightDTO dto) {
-        String airportFrom = dto.getFrom();
-        String airportTo = dto.getTo();
-        LocalDate departureDate = dto.getDepartureDate();
+        String airportFrom = dto.from();
+        String airportTo = dto.to();
+        LocalDate departureDate = dto.departureDate();
 
         List<Flight> flights = flightInMemoryRepository.getFlights().stream()
                 .filter(flight -> flight.getDepartureTime().toLocalDate().equals(departureDate))

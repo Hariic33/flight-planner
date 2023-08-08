@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset haralds:6
+--changeset haralds:7
 
 CREATE TABLE flight
 (
@@ -8,6 +8,6 @@ CREATE TABLE flight
     from_airport   INT REFERENCES airport (id),
     to_airport     INT REFERENCES airport (id),
     carrier_name   VARCHAR(255) NOT NULL,
-    departure_time TIMESTAMP NOT NULL,
-    arrival_time   TIMESTAMP NOT NULL
+    departure_time TIMESTAMP    NOT NULL,
+    arrival_time   TIMESTAMP    NOT NULL
 );

@@ -30,7 +30,7 @@ public class ApiController {
 
     @GetMapping("/flights/{id}")
     public Map<String, Object> getFlightById(@PathVariable Long id) {
-            Flight flight = flightService.getFlightById(id);
-            return flightService.mapToResponse(flight);
+        Flight flight = flightService.getFlightById(id);
+        return flightService.mapToResponse(flight);
     }
 }
