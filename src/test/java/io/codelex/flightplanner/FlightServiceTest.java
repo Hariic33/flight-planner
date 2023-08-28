@@ -1,54 +1,67 @@
 package io.codelex.flightplanner;
 
 import io.codelex.flightplanner.domain.Airport;
+import io.codelex.flightplanner.domain.Flight;
 import io.codelex.flightplanner.dto.FlightDTO;
-import io.codelex.flightplanner.repository.FlightRepository;
+import io.codelex.flightplanner.repository.FlightInMemoryRepository;
+import io.codelex.flightplanner.service.FlightInMemoryService;
 import io.codelex.flightplanner.service.FlightService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class FlightServiceTest {
-    @Mock
-    private FlightRepository flightRepository;
 
-    @InjectMocks
+    @Mock
+    private FlightInMemoryRepository repository;
     private FlightService flightService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        flightService = new FlightInMemoryService(repository);
     }
 
     @Test
-    void searchFlights_ShouldReturnMatchingFlights() {
-        String from = "RIX";
-        String to = "ARN";
-        String departureDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    void testSearchFlights() {
+        FlightDTO dto = new FlightDTO("RIX", "ARN", LocalDate.of(2023, 8, 10));
+        Flight flight = createTestFlight();
+        when(repository.getFlights()).thenReturn(Collections.singletonList(flight));
 
-        FlightDTO flight1 = new FlightDTO(new Airport("Latvia", "Riga", "RIX"),
-                new Airport("Sweden", "Stockholm", "ARN"),
-                "Ryanair", LocalDateTime.now(), LocalDateTime.now().plusHours(2));
-        FlightDTO flight2 = new FlightDTO(new Airport("Russia", "Moscow", "DME"),
-                new Airport("United Arab Emirates", "Dubai", "DXB"), "Turkish Airlines",
-                LocalDateTime.now(), LocalDateTime.now().plusHours(5));
+        Map<String, Object> result = flightService.searchFlights(dto);
+        List<Flight> foundFlights = (List<Flight>) result.get("items");
+        Flight foundFlight = foundFlights.get(0);
 
-        List<FlightDTO> flights = Arrays.asList(flight1, flight2);
-        when(flightRepository.getFlights()).thenReturn(flights);
+        assertEquals(1, foundFlights.size());
+        assertTestFlightEquals(flight, foundFlight);
+        verify(repository, times(1)).getFlights();
+    }
 
-        List<FlightDTO> result = flightService.searchFlights(from, to, departureDate);
+    private Flight createTestFlight() {
+        Flight flight = new Flight();
+        flight.setId(1L);
+        flight.setFrom(new Airport("RIX", "Riga", "Latvia"));
+        flight.setTo(new Airport("ARN", "Stockholm", "Sweden"));
+        flight.setDepartureTime(LocalDateTime.of(2023, 8, 10, 12, 0));
+        flight.setArrivalTime(LocalDateTime.of(2023, 8, 10, 14, 0));
+        return flight;
+    }
 
-        assertEquals(1, result.size());
+    private void assertTestFlightEquals(Flight expected, Flight actual) {
+        assertEquals(expected.getId(), actual.getId());
+        assertEquals(expected.getFrom(), actual.getFrom());
+        assertEquals(expected.getTo(), actual.getTo());
+        assertEquals(expected.getDepartureTime(), actual.getDepartureTime());
+        assertEquals(expected.getArrivalTime(), actual.getArrivalTime());
     }
 }

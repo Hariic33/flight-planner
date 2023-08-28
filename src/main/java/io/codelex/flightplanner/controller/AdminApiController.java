@@ -1,14 +1,13 @@
 package io.codelex.flightplanner.controller;
 
 import io.codelex.flightplanner.domain.Flight;
-import io.codelex.flightplanner.dto.FlightDTO;
-import io.codelex.flightplanner.exception.FlightNotFoundException;
 import io.codelex.flightplanner.service.FlightService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @Validated
@@ -22,30 +21,17 @@ public class AdminApiController {
 
     @PutMapping("/flights")
     @ResponseStatus(HttpStatus.CREATED)
-    public FlightDTO addFlight(@Valid @RequestBody Flight flight) {
-        if (!flightService.validateFlightRequest(flight)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
-        FlightDTO flightDTO = flightService.mapToDTO(flight);
-        flightService.addFlights(flightDTO);
-        return flightDTO;
+    public Flight addFlight(@RequestBody @Valid Flight flight) {
+        return flightService.addFlight(flight);
     }
 
     @DeleteMapping("/flights/{id}")
-    public void deleteFlight(@PathVariable String id) {
-        try {
-            flightService.deleteFlight(id);
-        } catch (FlightNotFoundException ignored) {
-        }
+    public void deleteFlight(@PathVariable Long id) {
+        flightService.deleteFlight(id);
     }
 
     @GetMapping("/flights/{id}")
-    public FlightDTO fetchFlight(@PathVariable String id) {
-        try {
-            return flightService.getFlightById(id);
-        } catch (FlightNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+    public Flight fetchFlight(@PathVariable Long id) {
+        return flightService.getFlightById(id);
     }
 }
