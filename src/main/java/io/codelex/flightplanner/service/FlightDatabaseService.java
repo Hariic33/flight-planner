@@ -65,13 +65,8 @@ public class FlightDatabaseService implements FlightService {
     }
 
     @Override
-    public boolean deleteFlight(Long id) {
-        if (flightRepository.existsById(id)) {
-            flightRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+    public void deleteFlight(Long id) {
+        flightRepository.findById(id).ifPresent(flightRepository::delete);
     }
 
     @Override

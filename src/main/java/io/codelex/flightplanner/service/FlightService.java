@@ -14,7 +14,7 @@ public interface FlightService {
 
     List<Airport> searchAirports(String search);
 
-    boolean deleteFlight(Long id);
+    void deleteFlight(Long id);
 
     Flight getFlightById(Long id);
 

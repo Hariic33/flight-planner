@@ -64,15 +64,13 @@ public class FlightInMemoryService implements FlightService {
                 .toList();
     }
 
-    public boolean deleteFlight(Long id) {
+    public void deleteFlight(Long id) {
         try {
             Flight flight = getFlightById(id);
             if (flight != null) {
                 flightInMemoryRepository.deleteFlight(flight);
             }
-            return true;
         } catch (FlightNotFoundException ignored) {
-            return true;
         }
     }
 
@@ -101,7 +99,6 @@ public class FlightInMemoryService implements FlightService {
 
         return Map.of("items", flights, "page", 0, "totalItems", flights.size());
     }
-
 
     public Map<String, Object> mapToResponse(Flight flight) {
         return Map.of(

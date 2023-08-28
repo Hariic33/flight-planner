@@ -26,8 +26,8 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/flights/{id}")
-    public boolean deleteFlight(@PathVariable Long id) {
-        return flightService.deleteFlight(id);
+    public void deleteFlight(@PathVariable Long id) {
+        flightService.deleteFlight(id);
     }
 
     @GetMapping("/flights/{id}")
